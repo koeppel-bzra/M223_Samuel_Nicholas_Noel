@@ -1,0 +1,8 @@
+-- =====================================================================
+-- data.sql  --  Testdatensaetze (vom Auftrag verlangt: "Datensaetze")
+-- ---------------------------------------------------------------------
+-- Hier kommen die INSERT-Anweisungen hin, z.B. ein paar Benutzer pro
+-- Rolle, Kunden und Beispiel-Auftraege in verschiedenen Status.
+--
+-- Aktivieren: in application.properties  spring.sql.init.mode=always
+-- =====================================================================

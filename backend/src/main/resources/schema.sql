@@ -1,0 +1,10 @@
+-- =====================================================================
+-- schema.sql  --  Tabellen der Datenbank (vom Auftrag verlangt: "SQL-Code")
+-- ---------------------------------------------------------------------
+-- Hier kommen die CREATE TABLE-Anweisungen hin, z.B.:
+--   benutzer (id, benutzername, passwort, rolle, name)
+--   kunde    (id, name, strasse, plz, ort, telefon, natel)
+--   auftrag  (id, datum, zeit, kunde_id, status, ...)
+--
+-- Aktivieren: in application.properties  spring.sql.init.mode=always
+-- =====================================================================
