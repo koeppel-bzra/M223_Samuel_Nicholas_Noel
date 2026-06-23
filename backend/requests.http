@@ -1,0 +1,100 @@
+### Service Auftrag – Test-Anfragen (mit Login / Rollen)
+### In IntelliJ jede Anfrage mit dem gruenen Pfeil (Run) ausfuehren.
+### Backend muss laufen: ./mvnw spring-boot:run  (Port 8080)
+###
+### Login-Daten (Demo): admin/admin, bereichsleiter/bereichsleiter, mitarbeiter/mitarbeiter
+### Wichtig: Die Aktionen brauchen unterschiedliche Rollen -> vor dem jeweiligen
+### Schritt mit dem passenden Benutzer einloggen. IntelliJ merkt sich das Session-Cookie.
+
+@host = http://localhost:8080
+
+### 0) Lebenszeichen (ohne Login)
+GET {{host}}/api/ping
+
+### 1) Login als ADMIN
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "benutzername": "admin", "passwort": "admin" }
+
+### 1b) Wer bin ich?
+GET {{host}}/api/auth/me
+
+### 2) Mitarbeiter auflisten (ID fuer das Disponieren merken)
+GET {{host}}/api/benutzer?rolle=MITARBEITER
+
+### 3) Auftrag erfassen (als ADMIN)  -> ID wird in auftragId gespeichert
+POST {{host}}/api/auftraege
+Content-Type: application/json
+
+{
+  "kundeName": "Beatrice Brandenberger",
+  "strasse": "Obderdorfstrasse 11",
+  "plz": "8484",
+  "ort": "Weisslingen",
+  "telefon": "098 765 43 21",
+  "objektAdresse": "dito",
+  "arbeiten": ["REPARATUR", "SANITAER"],
+  "beschreibung": "Wasserhahn in der Küche tropft",
+  "terminwunsch": "so schnell wie möglich"
+}
+
+> {% client.global.set("auftragId", response.body.id); %}
+
+### 4) Liste nach Status (als ADMIN)
+GET {{host}}/api/auftraege?status=ERFASST
+
+### 4b) Auftragsdokument als PDF herunterladen (jeder angemeldete Benutzer)
+GET {{host}}/api/auftraege/{{auftragId}}/pdf
+Accept: application/pdf
+
+### 5) GEGENPROBE: als ADMIN disponieren -> 403 (nur Bereichsleiter darf das)
+PATCH {{host}}/api/auftraege/{{auftragId}}/disponieren
+Content-Type: application/json
+
+{ "mitarbeiterId": 3, "geplanterTermin": "2026-06-20" }
+
+### 6) Login als BEREICHSLEITER
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "benutzername": "bereichsleiter", "passwort": "bereichsleiter" }
+
+### 7) Disponieren (jetzt erlaubt) – mitarbeiterId aus Schritt 2
+PATCH {{host}}/api/auftraege/{{auftragId}}/disponieren
+Content-Type: application/json
+
+{ "mitarbeiterId": 3, "geplanterTermin": "2026-06-20" }
+
+### 8) Login als MITARBEITER
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "benutzername": "mitarbeiter", "passwort": "mitarbeiter" }
+
+### 9) Als ausgefuehrt markieren (mit Rapport)
+PATCH {{host}}/api/auftraege/{{auftragId}}/ausfuehren
+Content-Type: application/json
+
+{ "rapportText": "Dichtung ersetzt, Hahn ist dicht." }
+
+### 10) Login als BEREICHSLEITER und freigeben
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "benutzername": "bereichsleiter", "passwort": "bereichsleiter" }
+
+###
+PATCH {{host}}/api/auftraege/{{auftragId}}/freigeben
+
+### 11) Login als ADMIN und verrechnen
+POST {{host}}/api/auth/login
+Content-Type: application/json
+
+{ "benutzername": "admin", "passwort": "admin" }
+
+###
+PATCH {{host}}/api/auftraege/{{auftragId}}/verrechnen
+
+### 12) Abmelden
+POST {{host}}/api/auth/logout
